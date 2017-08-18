@@ -18,17 +18,17 @@ parameters:
   storageAccount: makshsqldb
 ---
 apiVersion: "v1"
-kind: PersistentVolumeClaim
+kind: "PersistentVolumeClaim"
 metadata:
-  name: sqldb-pv
+  name: "sqldb-pv"
   annotations:
-    volume.beta.kubernetes.io/storage-class: azurestorageclass
+    volume.beta.kubernetes.io/storage-class: "azurestorageclass"
 spec:
   accessModes:
-    - ReadWriteOnce
+    - "ReadWriteOnce"
   resources:
     requests:
-      storage: 10Gi
+      storage: "10Gi"
 ---
 apiVersion: v1
 kind: Service
@@ -76,3 +76,6 @@ spec:
       - name: sqldb-home
         persistentVolumeClaim:
           claimName: sqldb-pv
+          
+
+          

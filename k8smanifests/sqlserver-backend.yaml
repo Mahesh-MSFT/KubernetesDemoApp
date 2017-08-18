@@ -17,6 +17,19 @@ parameters:
   location: southeastasia
   storageAccount: makshsqldb
 ---
+apiVersion: "v1"
+kind: PersistentVolumeClaim
+metadata:
+  name: sqldb-pv
+  annotations:
+    volume.beta.kubernetes.io/storage-class: azurestorageclass
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+---
 apiVersion: v1
 kind: Service
 metadata:
@@ -25,7 +38,6 @@ metadata:
     app: sqlservice
 spec:
   type: LoadBalancer
-  #loadBalancerIP: 52.187.173.125
   ports:
   - port: 1433
     targetPort: 1433
@@ -37,17 +49,16 @@ kind: StatefulSet
 metadata:
   name: sqlserverstatefulset
 spec:
-  serviceName: "sqlservice"
+  serviceName: sqlservice
   replicas: 1
   template:
     metadata:
       labels:
         app: sqlinux
     spec:
-      terminationGracePeriodSeconds: 10
       containers:
         - name: sqlinux
-          image: maksh/snoopyshoppingcartdb
+          image: microsoft/mssql-server-linux
           env:
             - name: SA_PASSWORD
               valueFrom:
@@ -59,15 +70,9 @@ spec:
           ports:
             - containerPort: 1433
           volumeMounts:
-            - name: sql-persistent-storage
-              mountPath: /data/db
-  volumeClaimTemplates:
-  - metadata:
-      name: sql-persistent-storage
-      annotations:
-        volume.beta.kubernetes.io/storage-class: "azurestorageclass"
-    spec:
-      accessModes: [ "ReadWriteOnce" ]
-      resources:
-        requests:
-          storage: 100Gi
+            - mountPath: /var/opt
+              name: sqldb-home
+      volumes:
+      - name: sqldb-home
+        persistentVolumeClaim:
+          claimName: sqldb-pv
